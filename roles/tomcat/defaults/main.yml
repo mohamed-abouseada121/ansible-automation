@@ -1,0 +1,3 @@
+mariadb_admin_user: 'root'
+mariadb_admin_password: ''
+mariadb_admin_home: '/root'

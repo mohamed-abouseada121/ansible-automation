@@ -1,0 +1,55 @@
+- name: Install epel
+  package:
+    name: epel-release
+    state: present
+
+- name: Install rabbitmq repo
+  package:
+    name: centos-release-rabbitmq-38
+    state: present
+
+- name: Install rabbitmq-server
+  package:
+    name: rabbitmq-server
+    state: present
+    enablerepo: centos-rabbitmq-38
+
+- name: start rabbitmq-server
+  systemd:
+    name: rabbitmq-server
+    state: started
+    enabled: yes
+
+
+- name: rabbitmq set conf
+  ansible.builtin.shell: 'echo "[{rabbit, [{loopback_users, []}]}]." > /etc/rabbitmq/rabbitmq.config'
+  become: yes
+
+
+- name: set rabbitmq user
+  command: rabbitmqctl add_user test test
+  ignore_errors: yes
+
+- name: set test as administrator
+  command: rabbitmqctl set_user_tags test administrator
+
+- name: set user permisions
+  command: rabbitmqctl set_permissions -p / test ".*" ".*" ".*"
+  notify: restart rabbitmq
+
+
+- name: start firewalld
+  systemd:
+    name: firewalld
+    state: started
+    enabled: yes
+
+
+- name: open port 5672
+  ansible.posix.firewalld:
+    zone: public
+    port: 5672/tcp
+    permanent: true
+    state: enabled
+    immediate: yes
+  notify: restart firewalld

@@ -1,0 +1,10 @@
+- name: restart memcached
+  systemd:
+    name: memcached
+    state: restarted
+
+- name: restart firewalld
+  systemd:
+    name: firewalld
+    enabled: yes
+    state: restarted

@@ -1,0 +1,6 @@
+- hosts: mc01
+  become: yes
+  roles:
+    - memcached
+
+

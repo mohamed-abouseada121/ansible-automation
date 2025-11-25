@@ -1,0 +1,145 @@
+- name: Install epel mariadb git pymysql
+  package:
+    name: 
+     - epel-release
+     - java-11-openjdk-devel
+     - java-11-openjdk
+     - git
+     - wget
+     - unzip
+    state: present
+- name: Create tomcat user
+  user:
+    name: tomcat
+    home: /usr/local/tomcat
+    shell: /sbin/nologin
+    state: present
+    create_home: yes
+
+- name: Download Tomcat tar.gz
+  get_url:
+    url: "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.81/bin/apache-tomcat-9.0.81.tar.gz"
+    dest: "/tmp/apache-tomcat-9.0.81.tar.gz"
+    mode: '0644'
+
+- name: Extract Tomcat
+  unarchive:
+    src: "/tmp/apache-tomcat-9.0.81.tar.gz"
+    dest: "/usr/local"
+    remote_src: yes
+    creates: "/usr/local/apache-tomcat-9.0.81"
+
+- name: Remove old Tomcat folder if exists
+  file:
+    path: /usr/local/tomcat
+    state: absent
+
+- name: Move Tomcat to /usr/local/tomcat
+  command: mv /usr/local/apache-tomcat-9.0.81/ /usr/local/tomcat
+
+- name: use template for tomcat conf
+  template: 
+    src: tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    owner: root
+    group: root
+    mode: '0600'
+- 
+
+
+- name: Set permissions
+  file:
+    path: "/usr/local/tomcat"
+    owner: tomcat
+    group: tomcat
+    recurse: yes
+
+- name: Make scripts executable
+  file:
+    path: "{{ item }}"
+    mode: '0755'
+  loop: "{{ lookup('fileglob', '/usr/local/tomcat/bin/*.sh', wantlist=True) }}"
+
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Start and enable Tomcat service
+  systemd:
+    name: tomcat
+    state: started
+    enabled: yes
+
+- name: Download maven
+  get_url:
+    url: "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.zip"
+    dest: "/tmp/apache-maven-3.9.9-bin.zip"
+    mode: '0644'
+
+- name: Extract maven
+  unarchive:
+    src: "/tmp/apache-maven-3.9.9-bin.zip"
+    dest: "/usr/local"
+    remote_src: yes
+    creates: "/usr/local/apache-maven-3.9.9"
+
+- name: Set MAVEN_OPTS globally
+  copy:
+    dest: /etc/profile.d/maven.sh
+    content: 'export MAVEN_OPTS="-Xmx512m"'
+    mode: '0644'
+
+
+- name: clone the program-repo
+  ansible.builtin.git:
+    repo: https://github.com/hkhcoder/vprofile-project/
+    dest: "{{ ansible_env.HOME }}/project-code"
+
+- name: Go to the folder and execute command
+  command: /usr/local/apache-maven-3.9.9/bin/mvn install
+  args:
+    chdir: /root/project-code/
+  tags:
+    - here
+- name: remove apps
+  command: rm -rf /usr/local/tomcat/webapps/ROOT*
+
+- name: deploy app
+  command: mv /root/project-code/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
+
+
+
+- name: start tomcat
+  service:
+    name: tomcat
+    state: started
+
+- name: set permissions
+  command: chown tomcat.tomcat /usr/local/tomcat/webapps -R
+
+- name: restart tomcat
+  service:
+    name: tomcat
+    state: restarted
+
+
+
+
+- name: start firewalld
+  service:
+    name:  firewalld
+    state: started
+
+ 
+- name: open port 8080
+  ansible.posix.firewalld:
+    zone: public
+    port: 8080/tcp
+    permanent: true
+    state: enabled
+    immediate: yes
+  notify: restart firewalld
+
+
+
