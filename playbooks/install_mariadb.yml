@@ -1,4 +1,4 @@
-- hosts: db01
+- hosts: dbservers
   become: yes
   roles:
     - mariadb

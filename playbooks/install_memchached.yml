@@ -1,4 +1,4 @@
-- hosts: mc01
+- hosts: memchachedservers
   become: yes
   roles:
     - memcached

@@ -9,8 +9,8 @@
 
 - name: clone the program-repo
   ansible.builtin.git:
-    repo: https://github.com/mohamed-abouseada121/project-code.git
-    dest: "{{ ansible_env.HOME }}/project-code"
+    repo: https://github.com/mohamed-abouseada121/sourcecodeseniorwr
+    dest: "{{ ansible_env.HOME }}/sourcecodeseniorwr"
 
 - name: start mariadb 
   service:
@@ -66,7 +66,7 @@
   mysql_db:
     name: accounts
     state: import
-    target: /root/project-code/src/main/resources/db_backup.sql
+    target: /root/sourcecodeseniorwr/src/main/resources/db_backup.sql
     config_file: /root/.my.cnf
     login_unix_socket: /var/lib/mysql/mysql.sock
 

@@ -1,4 +1,4 @@
-- name: Install epel mariadb git pymysql
+- name: Install epel java git wget unzip
   package:
     name: 
      - epel-release
@@ -8,6 +8,7 @@
      - wget
      - unzip
     state: present
+
 - name: Create tomcat user
   user:
     name: tomcat
@@ -93,20 +94,20 @@
 
 - name: clone the program-repo
   ansible.builtin.git:
-    repo: https://github.com/hkhcoder/vprofile-project/
-    dest: "{{ ansible_env.HOME }}/project-code"
+    repo: https://github.com/mohamed-abouseada121/sourcecodeseniorwr
+    dest: "{{ ansible_env.HOME }}/sourcecodeseniorwr"
 
 - name: Go to the folder and execute command
   command: /usr/local/apache-maven-3.9.9/bin/mvn install
   args:
-    chdir: /root/project-code/
+    chdir: /root/sourcecodeseniorwr/
   tags:
     - here
 - name: remove apps
   command: rm -rf /usr/local/tomcat/webapps/ROOT*
 
 - name: deploy app
-  command: mv /root/project-code/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
+  command: mv /root/sourcecodeseniorwr/target/vprofile-v2.war /usr/local/tomcat/webapps/ROOT.war
 
 
 

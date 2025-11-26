@@ -1,0 +1,52 @@
+- name: Install epel mariadb git pymysql
+  package:
+    name: nginx
+    state: present
+
+- name: set server name
+  command: sed -i 's/server_name\s\+_;/server_name web01;/' /etc/nginx/nginx.conf
+
+
+- name: set key
+  template:
+    src: web01.key.j2
+    dest: /etc/nginx/ssl/web01.key
+
+
+- name: set certificate
+  template:
+    src: web01.crt
+    dest: /etc/nginx/ssl/web01.crt
+
+- name: Deploy nginx template
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+
+
+
+- name: start firewalld
+  service:
+    name:  firewalld
+    state: started
+
+ 
+- name: allow HTTP service
+  ansible.posix.firewalld:
+    zone: public
+    service: http
+    permanent: true
+    state: enabled
+    immediate: yes
+
+- name: allow HTTPS service
+  ansible.posix.firewalld:
+    zone: public
+    service: https
+    permanent: true
+    state: enabled
+    immediate: yes
+  notify: restart firewalld
+
+
+

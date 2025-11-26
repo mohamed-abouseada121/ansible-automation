@@ -1,4 +1,4 @@
-- hosts: rmq01
+- hosts: rmqsevers
   become: yes
   roles:
     - rabbitmq

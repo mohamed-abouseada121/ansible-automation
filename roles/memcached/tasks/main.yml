@@ -1,13 +1,18 @@
 
-- name: Install epel
+- name: Install epel and memcached
   package:
-    name: epel-release
+    name: 
+     - epel-release
+     - memcached
     state: present
 
-- name: Install memcached
-  package:
+
+- name: Enable & start memcached
+  systemd:
     name: memcached
-    state: present
+    enabled: yes
+    state: started
+
 
 - name: Copy memcached config
   template:
@@ -18,11 +23,6 @@
     mode: '0644'
   notify: restart memcached
 
-- name: Enable & start memcached
-  systemd:
-    name: memcached
-    enabled: yes
-    state: started
 
 - name: open port 11211
   ansible.posix.firewalld:
